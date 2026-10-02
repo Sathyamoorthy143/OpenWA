@@ -1,0 +1,316 @@
+.autoreplies-page {
+  width: 100%;
+  padding: 2rem;
+  overflow-x: hidden;
+}
+
+.autoreplies-page.autoreplies-loading,
+.autoreplies-page .autoreplies-loading-inline,
+.autoreplies-page .autoreplies-empty-page,
+.autoreplies-page .autoreplies-empty-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.autoreplies-page.autoreplies-loading {
+  min-height: 400px;
+}
+
+.autoreplies-page .autoreplies-session-select {
+  min-width: 240px;
+}
+
+.autoreplies-page .autoreplies-workspace {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(420px, 1fr);
+  min-height: calc(100vh - 180px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-white);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.autoreplies-page .autoreplies-library,
+.autoreplies-page .autoreplies-editor {
+  min-width: 0;
+  min-height: 0;
+}
+
+.autoreplies-page .autoreplies-library {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--bg-light);
+}
+
+.autoreplies-page .autoreplies-library-header,
+.autoreplies-page .autoreplies-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 74px;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.autoreplies-page .autoreplies-library-header h2,
+.autoreplies-page .autoreplies-editor-header h2 {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.autoreplies-page .autoreplies-library-header span,
+.autoreplies-page .autoreplies-editor-header p {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.autoreplies-page .autoreplies-editor-header p {
+  margin-bottom: 0;
+}
+
+.autoreplies-page .autoreplies-new-btn {
+  min-height: 36px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.autoreplies-page .autoreplies-search {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-white);
+  color: var(--text-muted);
+}
+
+.autoreplies-page .autoreplies-search input {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.autoreplies-page .autoreplies-search:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.autoreplies-page .autoreplies-empty-page {
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 400px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.autoreplies-page .autoreplies-empty-page h3 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.autoreplies-page .autoreplies-empty-list {
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.autoreplies-page .autoreplies-empty-list.compact {
+  padding: 1.5rem 1rem;
+}
+
+.autoreplies-page .autoreplies-empty-list h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+}
+
+.autoreplies-page .autoreplies-empty-list p {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.autoreplies-page .autoreplies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem;
+  overflow-y: auto;
+}
+
+.autoreplies-page .autoreplies-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-white);
+}
+
+.autoreplies-page .autoreplies-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.autoreplies-page .autoreplies-list-item.selected {
+  background: var(--primary-soft);
+}
+
+.autoreplies-page .autoreplies-list-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.autoreplies-page .autoreplies-list-body,
+.autoreplies-page .autoreplies-list-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+}
+
+.autoreplies-page .autoreplies-list-body {
+  color: var(--text-secondary);
+}
+
+.autoreplies-page .autoreplies-list-meta {
+  color: var(--text-muted);
+}
+
+.autoreplies-page .autoreplies-status {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.autoreplies-page .autoreplies-status.on {
+  background: var(--success-soft, #dcfce7);
+  color: var(--success, #15803d);
+}
+
+.autoreplies-page .autoreplies-status.off {
+  background: var(--bg-light);
+  color: var(--text-muted);
+}
+
+.autoreplies-page .autoreplies-switch {
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--border);
+  position: relative;
+  transition: background 0.2s;
+}
+
+.autoreplies-page .autoreplies-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-white);
+  transition: left 0.2s;
+}
+
+.autoreplies-page .autoreplies-switch.on {
+  background: var(--primary);
+}
+
+.autoreplies-page .autoreplies-switch.on::after {
+  left: 16px;
+}
+
+.autoreplies-page .autoreplies-editor {
+  display: flex;
+  flex-direction: column;
+}
+
+.autoreplies-page .autoreplies-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.autoreplies-page .autoreplies-hint {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.autoreplies-page .autoreplies-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.autoreplies-page .autoreplies-checks label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.autoreplies-page .autoreplies-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media (max-width: 1024px) {
+  .autoreplies-page .autoreplies-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .autoreplies-page .autoreplies-library {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 768px) {
+  .autoreplies-page {
+    padding: 1rem;
+  }
+}

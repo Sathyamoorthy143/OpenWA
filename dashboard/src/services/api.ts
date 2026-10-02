@@ -953,6 +953,47 @@ export const templateApi = {
 };
 
 // =============================================================================
+// Automation (autoreply rules) API
+// =============================================================================
+
+export interface AutomationRule {
+  id: string;
+  sessionId: string;
+  name: string;
+  replyText: string;
+  conditions?: WebhookFilters | null;
+  cooldownSeconds: number;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AutomationRulePayload {
+  name: string;
+  replyText: string;
+  conditions?: WebhookFilters | null;
+  cooldownSeconds?: number;
+  enabled?: boolean;
+}
+
+export const automationApi = {
+  list: (sessionId: string) =>
+    request<AutomationRule[]>(`/sessions/${sessionId}/automation-rules`),
+  create: (sessionId: string, data: AutomationRulePayload) =>
+    request<AutomationRule>(`/sessions/${sessionId}/automation-rules`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (sessionId: string, id: string, data: Partial<AutomationRulePayload>) =>
+    request<AutomationRule>(`/sessions/${sessionId}/automation-rules/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  delete: (sessionId: string, id: string) =>
+    request<void>(`/sessions/${sessionId}/automation-rules/${id}`, { method: 'DELETE' }),
+};
+
+// =============================================================================
 // Contact API
 // =============================================================================
 

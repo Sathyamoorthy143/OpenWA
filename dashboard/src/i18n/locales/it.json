@@ -69,7 +69,8 @@
     "messageTester": "Messaggio di prova",
     "infrastructure": "Infrastruttura",
     "plugins": "Plugin",
-    "logs": "Log"
+    "logs": "Log",
+    "autoReplies": "Auto-Replies"
   },
   "chats": {
     "media": {
@@ -1174,5 +1175,63 @@
       "current": "Questa sessione"
     },
     "loading": "Ricerca…"
+  },
+  "autoReplies": {
+    "title": "Auto-Replies",
+    "subtitle": "Answer incoming WhatsApp messages automatically for each session",
+    "sessionSelect": "Session",
+    "noSessions": "No sessions",
+    "newRule": "New Rule",
+    "createTitle": "Create Rule",
+    "editTitle": "Edit Rule",
+    "sessionHint": "Saved under {{name}}",
+    "namePlaceholder": "e.g., greeting",
+    "matchLabel": "When a message arrives",
+    "matchAny": "Any message",
+    "matchContains": "Message contains text",
+    "matchEquals": "Message exactly equals",
+    "matchText": "Text to match",
+    "matchTextPlaceholder": "e.g., hi",
+    "matchAnyShort": "Any message",
+    "matchContainsShort": "Contains \"{{text}}\"",
+    "matchEqualsShort": "Exactly \"{{text}}\"",
+    "reply": "Reply",
+    "replyPlaceholder": "Type the automatic reply here.",
+    "cooldown": "Cooldown (seconds)",
+    "cooldownHint": "After replying in a chat, stay silent there for this long. Prevents reply loops.",
+    "skipOwn": "Skip my own messages",
+    "skipGroups": "Skip group chats",
+    "enabled": "Enabled",
+    "enabledOn": "On",
+    "enabledOff": "Off",
+    "saveChanges": "Save Changes",
+    "createRule": "Create Rule",
+    "viewOnly": "View Only",
+    "deleteTitle": "Delete Rule",
+    "deleteConfirm": "Delete the rule \"{{name}}\"?",
+    "count": "{{count}} rules",
+    "savedTitle": "Rules",
+    "actions": {
+      "toggle": "Enable or disable this rule"
+    },
+    "empty": {
+      "noSessionsTitle": "No sessions yet",
+      "noSessionsDesc": "Create a WhatsApp session first, then add auto-reply rules to it.",
+      "title": "No auto-reply rules yet",
+      "description": "Create your first rule to answer incoming messages automatically.",
+      "noMatch": "No rules match your search.",
+      "loadErrorTitle": "Could not load rules",
+      "forbiddenTitle": "Not allowed",
+      "forbiddenDesc": "Your API key cannot manage auto-reply rules."
+    },
+    "toasts": {
+      "created": "Rule created.",
+      "updated": "Rule updated.",
+      "deleted": "Rule deleted.",
+      "toggled": "Rule updated.",
+      "createFailed": "Could not create the rule: {{message}}",
+      "updateFailed": "Could not update the rule: {{message}}",
+      "deleteFailed": "Could not delete the rule: {{message}}"
+    }
   }
 }

@@ -3,6 +3,7 @@ import {
   sessionApi,
   webhookApi,
   templateApi,
+  automationApi,
   apiKeyApi,
   auditApi,
   infraApi,
@@ -12,6 +13,7 @@ import {
   type CreateWebhookRequest,
   type UpdateWebhookRequest,
   type TemplatePayload,
+  type AutomationRulePayload,
   type StatsPeriod,
   type CreateInstanceInput,
   type UpdateInstanceInput,
@@ -26,6 +28,7 @@ export const queryKeys = {
   sessionChats: (sessionId: string) => ['sessions', sessionId, 'chats'] as const,
   webhooks: ['webhooks'] as const,
   templates: (sessionId: string) => ['sessions', sessionId, 'templates'] as const,
+  automationRules: (sessionId: string) => ['sessions', sessionId, 'automation-rules'] as const,
   apiKeys: ['apiKeys'] as const,
   logs: (params: { severity?: string; page: number; limit: number }) => ['logs', params] as const,
   infraStatus: ['infra', 'status'] as const,
@@ -170,6 +173,49 @@ export function useDeleteTemplateMutation() {
     mutationFn: (params: { sessionId: string; id: string }) => templateApi.delete(params.sessionId, params.id),
     onSuccess: (_template, params) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.templates(params.sessionId) });
+    },
+  });
+}
+
+// ── Automation (autoreply rules) Queries ────────────────────────────────────
+
+export function useAutomationRulesQuery(sessionId: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.automationRules(sessionId),
+    queryFn: () => automationApi.list(sessionId),
+    enabled: enabled && !!sessionId,
+    staleTime: 30_000,
+  });
+}
+
+export function useCreateAutomationRuleMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: { sessionId: string; data: AutomationRulePayload }) =>
+      automationApi.create(params.sessionId, params.data),
+    onSuccess: (_rule, params) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.automationRules(params.sessionId) });
+    },
+  });
+}
+
+export function useUpdateAutomationRuleMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: { sessionId: string; id: string; data: Partial<AutomationRulePayload> }) =>
+      automationApi.update(params.sessionId, params.id, params.data),
+    onSuccess: (_rule, params) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.automationRules(params.sessionId) });
+    },
+  });
+}
+
+export function useDeleteAutomationRuleMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: { sessionId: string; id: string }) => automationApi.delete(params.sessionId, params.id),
+    onSuccess: (_rule, params) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.automationRules(params.sessionId) });
     },
   });
 }
