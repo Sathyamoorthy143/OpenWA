@@ -38,6 +38,9 @@ import { Request, Response, NextFunction } from 'express';
 import { RedisIoAdapter } from './modules/events/redis-io.adapter';
 import { prestartBuiltinDatabase } from './modules/docker/docker.service';
 
+// Use standard TypeScript imports instead of require()
+import * as nativeHttp from 'http';
+
 // The created app, exposed at module scope so the fatal handler below can run a best-effort teardown
 // (engine sessions, Redis/pg) when bootstrap fails AFTER NestFactory.create succeeded — notably a
 // listen() bind failure (EADDRINUSE), where full init already ran.
@@ -169,4 +172,3 @@ async function bootstrap() {
   });
 
   // On SIGTERM/SIGINT: drain gracefully. shutdown() flips readiness to 503 immediately (the LB stops
-  // routing), keeps serving in-flight requests for a bounded grace, then runs app.close() (the SAME
