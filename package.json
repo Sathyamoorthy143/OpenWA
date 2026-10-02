@@ -12,7 +12,7 @@
     "enabled": false
   },
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && npm run dashboard:ci -- --include=dev && npm run dashboard:build && rm -f dist/*.tsbuildinfo",
     "build:all": "nest build && npm run dashboard:build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.md\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.md\"",
