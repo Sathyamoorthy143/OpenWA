@@ -12,11 +12,11 @@
     "enabled": false
   },
   "scripts": {
-    "build": "nest build && npm run dashboard:ci -- --include=dev && npm run dashboard:build && apt-get update && apt-get install -y --no-install-recommends libnspr4 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 libcairo2 fonts-liberation && PUPPETEER_CACHE_DIR=/workspace/.puppeteer npx puppeteer browsers install chrome && rm -f dist/*.tsbuildinfo",
+    "build": "nest build",
     "build:all": "nest build && npm run dashboard:build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.md\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.md\"",
-    "start": "export PUPPETEER_EXECUTABLE_PATH=$(find /workspace/.puppeteer -name chrome -type f 2>/dev/null | head -1) && node dist/main",
+    "start": "node dist/main",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -528,20 +528,5 @@
     "typeorm": {
       "ioredis": "$ioredis"
     }
-  },
-  "main": "index.js",
-  "directories": {
-    "doc": "docs",
-    "test": "test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Sathyamoorthy143/OpenWA.git"
-  },
-  "keywords": [],
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Sathyamoorthy143/OpenWA/issues"
-  },
-  "homepage": "https://github.com/Sathyamoorthy143/OpenWA#readme"
+  }
 }
