@@ -38,9 +38,6 @@ import { Request, Response, NextFunction } from 'express';
 import { RedisIoAdapter } from './modules/events/redis-io.adapter';
 import { prestartBuiltinDatabase } from './modules/docker/docker.service';
 
-// Use standard TypeScript imports instead of require()
-import * as nativeHttp from 'http';
-
 // The created app, exposed at module scope so the fatal handler below can run a best-effort teardown
 // (engine sessions, Redis/pg) when bootstrap fails AFTER NestFactory.create succeeded — notably a
 // listen() bind failure (EADDRINUSE), where full init already ran.
@@ -172,3 +169,125 @@ async function bootstrap() {
   });
 
   // On SIGTERM/SIGINT: drain gracefully. shutdown() flips readiness to 503 immediately (the LB stops
+  // routing), keeps serving in-flight requests for a bounded grace, then runs app.close() (the SAME
+  // Nest lifecycle hooks Nest's own handler would run) and exits deterministically. A SECOND signal
+  // forces an immediate exit — a dev double-Ctrl+C, or an operator not willing to wait out a wedged
+  // teardown. The gate is a dedicated "a signal already arrived" flag, NOT isShuttingDown() (which an
+  // admin restart also sets) — so a first real signal during an admin-restart grace still drains
+  // gracefully instead of hard-exiting.
+  let signalReceived = false;
+  for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+    process.on(signal, () => {
+      if (signalReceived) {
+        process.exit(130);
+      }
+      signalReceived = true;
+      shutdownService.shutdown();
+    });
+  }
+
+  // Shared production/e2e prefix and DTO validation contract.
+  applyGlobalValidation(app);
+
+  // Swagger documentation. ENABLE_SWAGGER wins; otherwise default on outside production, off in
+  // production (the API schema is reconnaissance surface — production opts in with ENABLE_SWAGGER=true).
+  const swaggerEnabled = isSwaggerEnabled(process.env.ENABLE_SWAGGER, process.env.NODE_ENV);
+  if (swaggerEnabled) {
+    const config = createSwaggerConfig();
+    const document = SwaggerModule.createDocument(app, config);
+    // Same passes, in the same order, as scripts/export-openapi.ts. The document is produced in
+    // TWO places — here for the live /api/docs and there for the committed snapshot — and fixing only
+    // the snapshot leaves a running gateway serving a document that fails schema validation.
+    dropUnexpressibleOperations(document);
+    exemptPublicOperations(document);
+    documentErrorResponses(document);
+    SwaggerModule.setup('api/docs', app, document);
+  }
+
+  // Protect the Bull Board queue UI (/api/admin/queues). It is mounted by
+  // @bull-board/nestjs as raw Express middleware that the global ApiKeyGuard
+  // does not cover; registering this before app.listen() ensures it runs ahead
+  // of the Bull Board router. Requires a valid ADMIN API key. The middleware also
+  // writes the audit trail for this mount (auth failures + queue mutations).
+  const bullBoardAuth = new BullBoardAuthMiddleware(
+    app.get(AuthService),
+    app.get(ConfigService),
+    app.get(AuditService),
+  );
+  app.use('/api/admin/queues', (req: Request, res: Response, next: NextFunction) => {
+    void bullBoardAuth.use(req, res, next);
+  });
+
+  // Apply explicit HTTP server timeouts so they are operator-tunable (REQUEST_TIMEOUT_MS /
+  // HEADERS_TIMEOUT_MS / KEEPALIVE_TIMEOUT_MS) and observable at boot, instead of Node's implicit
+  // defaults. Done after the adapter exists and before listen(). Target MUST be the http.Server
+  // (app.getHttpServer()) — NOT getHttpAdapter().getInstance(), which is the Express APPLICATION
+  // (a function with no requestTimeout/headersTimeout/keepAliveTimeout props); writing onto it is
+  // inert. The timeouts only take effect on the real server.
+  const appliedHttpTimeouts = applyHttpTimeouts(
+    app.getHttpServer() as HttpTimeoutSink,
+    app.get(ConfigService).get<HttpTimeoutConfig>('http')!,
+  );
+  bootstrapLogger.log(
+    `HTTP server timeouts applied: requestTimeout=${appliedHttpTimeouts.requestTimeoutMs}ms ` +
+      `headersTimeout=${appliedHttpTimeouts.headersTimeoutMs}ms keepAliveTimeout=${appliedHttpTimeouts.keepAliveTimeoutMs}ms`,
+  );
+
+  const port = process.env.PORT || 2785;
+  await app.listen(port);
+
+  // Advertise the configured public URL, matching the AuthService banner (auth.service.ts). A bare
+  // `localhost` literal here contradicted that banner and read as "the UI is pinned to localhost",
+  // sending #731 chasing BASE_URL/BIND_HOST/API_PORT instead of the real cause.
+  const publicUrl = process.env.BASE_URL || `http://localhost:${port}`;
+
+  bootstrapLogger.log(`OpenWA is running on: ${publicUrl}`);
+  if (swaggerEnabled) {
+    bootstrapLogger.log(`Swagger docs: ${publicUrl}/api/docs`);
+  }
+
+  // Make the dashboard-serving outcome explicit so a missing build (no UI on `/`)
+  // is obvious instead of a silent 404.
+  if (!dashboardServingEnabled) {
+    bootstrapLogger.log('Dashboard: serving disabled (SERVE_DASHBOARD=false); API only');
+  } else if (dashboardBuildPresent) {
+    bootstrapLogger.log(`Dashboard: serving bundled UI at ${publicUrl}`);
+  } else {
+    bootstrapLogger.warn(
+      `Dashboard: no build at ${DASHBOARD_DIST} - UI disabled (API still serves /api). ` +
+        'Run `npm run build:all` to bundle it, or use the Vite dev server (`npm run dev`).',
+    );
+  }
+
+  // The upgrade-insecure-requests trap (#731): the browser upgrades the UI's own script fetches to
+  // https and a non-TLS server can't answer them, so the dashboard renders blank with nothing in the
+  // server log. We can't tell a TLS proxy from direct HTTP at boot (`trust proxy` is off), so this
+  // fires for both and the text says who should ignore it.
+  if (
+    isDashboardCspUpgradeTrapLikely({
+      nodeEnv: process.env.NODE_ENV,
+      cspEnv: process.env.CSP_UPGRADE_INSECURE_REQUESTS,
+      dashboardServed: dashboardServingEnabled && dashboardBuildPresent,
+    })
+  ) {
+    bootstrapLogger.warn(
+      'Dashboard: CSP upgrade-insecure-requests is ON (production default). If this instance is ' +
+        "reached over plain HTTP, the browser will upgrade the UI's scripts to https:// and the " +
+        'dashboard will render blank. Behind a TLS proxy? Ignore this. Serving direct HTTP? Set ' +
+        'CSP_UPGRADE_INSECURE_REQUESTS=false.',
+    );
+  }
+}
+
+// A failed bootstrap MUST terminate the process with a non-zero code, not just set `process.exitCode`:
+// listen() runs the full module init (database, Redis, plugin registration) before binding the port, and
+// the detached session auto-start (SessionService.onApplicationBootstrap) is already launching engines by
+// then, so a bind failure (EADDRINUSE) would otherwise leave a zombie process: no HTTP port, yet still
+// holding the event loop open and running WhatsApp sessions, invisible to Docker's restart policy.
+// runBootstrapOrExit logs the failure, runs a bounded best-effort app.close() teardown, then exits(1); a
+// successful boot returns without touching exit. Puppeteer's own `exit` handlers kill any browser
+// children still up.
+void runBootstrapOrExit(bootstrap, {
+  logger: createLogger('Bootstrap'),
+  closeApp: () => (appInstance ? appInstance.close() : Promise.resolve()),
+});
